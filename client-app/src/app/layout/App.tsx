@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Container } from "semantic-ui-react";
-import { Activity } from "../models/activity";
-import NavBar from "./NavBar";
-import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
 import { v4 as uuid } from "uuid";
+import { Container } from "semantic-ui-react";
+import React, { useEffect, useState } from "react";
+
+import NavBar from "./NavBar";
+import agent from "../api/agent";
+import { Activity } from "../models/activity";
+import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
+import LoadingComponent from "./LoadingComponent";
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -12,11 +14,17 @@ function App() {
     Activity | undefined
   >(undefined);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get<Activity[]>("http://localhost:5000/api/activities")
-      .then(({ data }) => setActivities(data));
+    agent.Activities.list().then((response) => {
+      let activities: Activity[] = response.map((a) => ({
+        ...a,
+        date: a.date.split("T")[0],
+      }));
+      setActivities(activities);
+      setLoading(false);
+    });
   }, []);
 
   const handleSelectActivity = (id: string) => {
@@ -50,6 +58,8 @@ function App() {
   const handleDeleteActivity = (id: string) => {
     setActivities([...activities.filter((a) => a.id !== id)]);
   };
+
+  if (loading) return <LoadingComponent content="Loading app" />;
 
   return (
     <>
