@@ -1,20 +1,11 @@
+import { observer } from "mobx-react-lite";
 import React, { SyntheticEvent, useState } from "react";
-import { Activity } from "../../../app/models/activity";
 import { Segment, Item, Button, Label } from "semantic-ui-react";
 
-interface Props {
-  activities: Activity[];
-  selectActivity: (id: string) => void;
-  deleteActivity: (id: string) => void;
-  submitting: boolean;
-}
+import { useStore } from "../../../app/stores/store";
 
-const ActivityList = ({
-  activities,
-  selectActivity,
-  deleteActivity,
-  submitting,
-}: Props) => {
+const ActivityList = () => {
+  const { activityStore } = useStore();
   const [target, setTarget] = useState("");
 
   const handleActivityDelete = (
@@ -22,13 +13,13 @@ const ActivityList = ({
     id: string
   ) => {
     setTarget(event.currentTarget.name);
-    deleteActivity(id);
+    activityStore.deleteActivity(id);
   };
 
   return (
     <Segment>
       <Item.Group divided>
-        {activities.map((activity) => (
+        {activityStore.activitiesByDate.map((activity) => (
           <Item key={activity.id}>
             <Item.Content>
               <Item.Header as="a">{activity.title}</Item.Header>
@@ -44,14 +35,14 @@ const ActivityList = ({
                   floated="right"
                   content="View"
                   color="blue"
-                  onClick={() => selectActivity(activity.id)}
+                  onClick={() => activityStore.selectActivity(activity.id)}
                 />
                 <Button
                   name={activity.id}
                   floated="right"
                   content="Delete"
                   color="red"
-                  loading={submitting && target === activity.id}
+                  loading={activityStore.loading && target === activity.id}
                   onClick={(e) => handleActivityDelete(e, activity.id)}
                 />
                 <Label basic content={activity.category} />
@@ -64,4 +55,4 @@ const ActivityList = ({
   );
 };
 
-export default ActivityList;
+export default observer(ActivityList);
