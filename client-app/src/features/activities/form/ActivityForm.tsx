@@ -4,7 +4,7 @@ import React, { ChangeEvent, useEffect, useState } from "react";
 import { Button, Form, Segment } from "semantic-ui-react";
 
 import { useStore } from "../../../app/stores/store";
-import { Link, useHistory, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
 
 const ActivityForm = () => {
@@ -17,7 +17,7 @@ const ActivityForm = () => {
     loadingInitial,
   } = activityStore;
   const { id } = useParams<{ id: string }>();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [activity, setActivity] = useState({
     id: "",
     date: "",
@@ -44,7 +44,7 @@ const ActivityForm = () => {
     } else {
       await updateActivity(activity);
     }
-    history.push(`/activities/${activity.id}`);
+    navigate(`/activities/${activity.id}`);
   };
 
   const handleInputChange = (

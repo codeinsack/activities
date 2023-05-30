@@ -1,18 +1,51 @@
-import axios, { AxiosResponse } from "axios";
+import { toast } from "react-toastify";
+import axios, { AxiosError, AxiosResponse } from "axios";
+
 import { Activity } from "../models/activity";
+import { store } from "../stores/store";
+import { router } from "../router/Routes";
 
 const sleep = (delay: number) =>
   new Promise((resolve) => setTimeout(resolve, delay));
 
 axios.defaults.baseURL = "http://localhost:5000/api";
 
-axios.interceptors.response.use((response) =>
-  sleep(1000)
-    .then(() => response)
-    .catch((error) => {
-      console.log(error);
-      return Promise.reject(error);
-    })
+axios.interceptors.response.use(
+  async (response) => {
+    await sleep(1000);
+    return response;
+  },
+  (error: AxiosError) => {
+    const { status, data, config } = error.response as any;
+    switch (status) {
+      case 400:
+        if (typeof data === "string") {
+          toast.error(data);
+        }
+        if (config.method === "get" && data.errors.hasOwnProperty("id")) {
+          router.navigate("/not-found");
+        }
+        if (data.errors) {
+          const modalStateErrors = [];
+          for (const key in data.errors) {
+            modalStateErrors.push(data.errors[key]);
+          }
+          throw modalStateErrors.flat();
+        }
+        break;
+      case 401:
+        toast.error("Unauthorized");
+        break;
+      case 404:
+        router.navigate("/not-found");
+        break;
+      case 500:
+        store.commonStore.setServerError(data);
+        router.navigate("/server-error");
+        break;
+    }
+    return Promise.reject(error);
+  }
 );
 
 const responseBody = <T>(response: AxiosResponse<T>) => response.data;
