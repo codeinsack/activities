@@ -13,28 +13,17 @@ import MyTextArea from "../../../app/common/form/MyTextArea";
 import MySelectInput from "../../../app/common/form/MySelectInput";
 import { categoryOptions } from "../../../app/common/options/categoryOptions";
 import MyDateInput from "../../../app/common/form/MyDateInput";
-import { Activity } from "../../../app/models/activity";
+import { ActivityFormValues } from "../../../app/models/activity";
 
 const ActivityForm = () => {
   const { activityStore } = useStore();
-  const {
-    loadActivity,
-    updateActivity,
-    createActivity,
-    loading,
-    loadingInitial,
-  } = activityStore;
+  const { loadActivity, updateActivity, createActivity, loadingInitial } =
+    activityStore;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activity, setActivity] = useState<Activity>({
-    id: "",
-    date: null,
-    description: "",
-    title: "",
-    category: "",
-    venue: "",
-    city: "",
-  });
+  const [activity, setActivity] = useState<ActivityFormValues>(
+    new ActivityFormValues()
+  );
 
   const validationSchema = Yup.object({
     title: Yup.string().required("The activity title is required"),
@@ -47,12 +36,14 @@ const ActivityForm = () => {
 
   useEffect(() => {
     if (id) {
-      loadActivity(id).then((activity) => setActivity(activity!));
+      loadActivity(id).then((activity) =>
+        setActivity(new ActivityFormValues(activity))
+      );
     }
   }, [id, loadActivity]);
 
-  const handleFormSubmit = async (activity: Activity) => {
-    if (activity.id.length === 0) {
+  const handleFormSubmit = async (activity: ActivityFormValues) => {
+    if (!activity.id) {
       let newActivity = {
         ...activity,
         id: uuid(),
@@ -96,7 +87,7 @@ const ActivityForm = () => {
             <MyTextInput name="venue" placeholder="Venue" />
             <Button
               disabled={isSubmitting || !dirty || !isValid}
-              loading={loading}
+              loading={isSubmitting}
               floated="right"
               positive
               type="submit"
