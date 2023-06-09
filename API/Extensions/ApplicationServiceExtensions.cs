@@ -23,6 +23,8 @@ public static class ApplicationServiceExtensions
         services.AddMediatR(typeof(List.Handler).Assembly);
         services.AddAutoMapper(typeof(MappingProfiles).Assembly);
         services.AddScoped<IUserAccessor, UserAccessor>();
+        services.AddSignalR();
+
         return services;
     }
 }
